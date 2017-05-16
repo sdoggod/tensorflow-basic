@@ -18,8 +18,9 @@ layout: false
 ## About
 
 - TensorFlow Basic - Op, Graph, Session, Feed 등
-- Rogistic Regression using TensorFlow
-
+- Logistic Regression using TensorFlow
+- `tf.flags`, Tensorboard 등 Minor tips
+- Variable Saving, Restoring
 ---
 
 template: inverse
@@ -35,6 +36,19 @@ with tf.Session() as sess:
   print sess.run(a)
 ```
 
+code(https://github.com/naseil/tensorflow-basic)
+
+```bash
+./code
+├── train.py
+├── train_quiz1.py
+└── train_quiz2.py
+
+```
+
+- `train.py` : basic regression model code
+- `train_quiz1.py` : quiz1 정답을 포함
+- `train_quiz2.py` : quiz2 정답을 포함
 ---
 
 ## Tensor
@@ -155,10 +169,27 @@ with tf.Session() as sess:
   feed = {a:2, b:4.5}
   print sess.run(c, feed_dict=feed) # 6.5
 ```
+---
+##Quiz 0. 
+
+1. 3x4 행렬에 대한 Placeholder `a` 와 4x6 행렬에 대한 Placeholder `b` 를 선언한다.
+
+2. 행렬 a와 b를 곱하여 3x6 행렬 c로 이어지는 그래프를 그린다.
+
+3. `numpy.random.randn` 함수로 `a, b`에 대한 랜덤 feed를 만들고, `Session`을 이용하여 랜덤값으로 채운 `a, b` 에 대한 `c`의 값을 출력한다.
+
+Tip.
+```python
+import numpy as np
+a = np.random.randn(2,3)
+print a
+```
 
 ---
 
 ## Variable: 학습하고자 하는 모델의 Parameter
+Variable과 Constant/Placeholder의 차이점: .red[텐서의 값이 변할 수 있느냐 없느냐의 여부]
+
 Parameter `W, b` 를 `1.0` 으로 **초기화** 한 후 linear model의 출력 구하기
 ```python
 W = tf.Variable(1.0, dtype=tf.float32)
@@ -201,10 +232,14 @@ with tf.Session() as sess:
 ---
 template: inverse
 # MNIST using Logistic Regression
-IPython notebook(https://www.naver.com)
+Code(https://https://github.com/naseil/tensorflow-basic)
 
-Code(https://www.naver.com)
+---
+## MNIST
+Image Classsification Dataset
 
+0 ~ 9까지의 손글씨 이미지를 알맞은 label로 분류하는 Task
+.center.image-66[![](images/mnist_example.png)]
 ---
 
 ## Example. MNIST Using Logistic Regression
@@ -239,8 +274,8 @@ mnist = input_data.read_data_sets("./data", one_hot=True)
 for _ in range(10000):
   batch_images, batch_labels = mnist.train.next_batch(100)
   batch_images_val, batch_labels_val = mnist.val.next_batch(100)
-  batch_image.shape # [100, 784]
-  batch_labels.shape # [100, 10]
+  print batch_image.shape # [100, 784]
+  print batch_labels.shape # [100, 10]
 ```
 
 ---
@@ -308,12 +343,6 @@ with tf.Session() as sess:
 ```
 
 ---
-
-## Result
-
-.center.img-66[![](images/train_result.png)]
-
----
 ## Minor Tips - `tensorflow.flags`
 
 TensorFlow에서 FLAGS를 통한 argparsing 기능도 제공하고 있습니다. HyperParamter(batch size, learning rate, max_step 등) 세팅에 유용!
@@ -336,6 +365,13 @@ max_step = FLAGS.max_steps
 ```
 
 `$ python train.py --batch_size=256 --learning_rate=0.001 --max_steps=100000`
+
+---
+
+## Result
+`$ python train.py --batch_size=128 --learning_rate=0.01 --max_steps=10000`
+
+.center.img-50[![](images/train_result.png)]
 
 ---
 
@@ -408,6 +444,255 @@ summary 폴더 여러 개를 두고 서로 다른 실험 결과를 실시간으�
 ## Quiz 2.
 모델을 트레이닝 할 때, `tf.summary.FileWriter` 를 train, validation 용으로 각각 1개씩 만들어서 Tensorboard로 Training/Validation performance 를 함께 모니터링 할 수 있도록 해보기
 .center.img-66[![](images/quiz2.png)]
+
+
+---
+template: inverse
+# Variable Saving & Restoring
+---
+## Variable Saving, Restoring
+학습은 어찌저찌 잘 했는데...
+
+우리의 목적은 모델 학습 그 자체가 아님!
+
+학습한 모델을 이용하여 새로운 입력 X 에 대하여 그에 알맞은 출력을 내는 것이 원래 목표였습니다.
+
+그렇다면, Training Phase에서 모델이 학습한 Parameter들의 값을 디스크에 저장해놓고, 나중에 불러올 수 있어야겠다.
+
+[`tf.train.Saver`](https://www.tensorflow.org/api_docs/python/tf/train/Saver) 모듈을 통해서 이와 같은 기능을 수행할 수 있습니다.
+---
+## Variable name
+시작하기 전에...
+처음에 배웠던 Tensor name에 대해서 자세히 알아야 합니다.
+
+모든 텐서는 선언하는 시점에 .red[이름이 자동으로 부여]되며, .red[중복되지 않습니다.]
+```python
+import tensorflow as tf
+a = tf.Variable(tf.random_normal(shape=[10]))
+b = tf.Variable(tf.zeros(shape=[10]))
+print a.name
+print b.name
+```
+
+Variable:0
+
+Variable_1:0
+
+---
+## Variable name
+`name` 을 통해서 이름을 명시적으로 지정할 수도 있지만, 같은 이름으로 지정된 경우 중복을 피하기위해 자동으로 인덱스가 붙습니다.
+
+```python
+c = tf.Variable(tf.ones(shape=[10]), name="my_variable")
+d = tf.Variable(tf.zeros(shape=[1]), name="my_variable")
+
+print c.name
+print d.name
+```
+
+my_variable:0
+
+my_variable_1:0
+
+---
+## Variable name
+`name` 을 통해서 이름을 명시적으로 지정할 수도 있지만, 같은 이름으로 지정된 경우 중복을 피하기위해 자동으로 인덱스가 붙습니다.
+
+```python
+c = tf.Variable(tf.ones(shape=[10]), name="my_variable")
+d = tf.Variable(tf.zeros(shape=[1]), name="my_variable")
+
+print c.name
+print d.name
+```
+
+한줄 요약: .red[모든 텐서에는 중복되지 않게 이름이 부여된다.]
+
+---
+## Variable Saving, Restoring
+그럼 이제, `tf.train.Saver` 객체를 이용해 변수 저장을 해봅시다.
+```python
+import tensorflow as tf
+*a = tf.Variable(tf.random_normal(shape=[10])) #a.name="Variable_0:0"
+*b = tf.Variable(tf.random_normal(shape=[5])) # b.name="Variable_1:0"
+saver = tf.train.Saver()
+with tf.Session() as sess:
+  sess.run(tf.global_variables_initializer())
+  # some training code...
+  save_path = saver.save(sess, "./logs/model.ckpt")
+```
+
+변수 a와 b를 선언합니다. 이름을 따로 지정해주지 않았으므로 `Variable_0:0` 과 같이 자동으로 지정됩니다.
+
+---
+## Variable Saving, Restoring
+그럼 이제, `tf.train.Saver` 객체를 이용해 변수 저장을 해봅시다.
+```python
+import tensorflow as tf
+a = tf.Variable(tf.random_normal(shape=[10])) #a.name="Variable_0:0"
+b = tf.Variable(tf.random_normal(shape=[5])) # b.name="Variable_1:0"
+*saver = tf.train.Saver()
+with tf.Session() as sess:
+  sess.run(tf.global_variables_initializer())
+  # some training code...
+  save_path = saver.save(sess, "./logs/model.ckpt")
+```
+
+Saver 객체를 생성합니다. Saver 객체 안에 아무런 파라미터가 없다면, 기본값으로 Saver 객체는 `{key="Variable name", value=Variable Tensor}` 쌍의 dictionary를 내부적으로 가지게 됩니다.
+
+즉, 이 경우에 Saver 객체가 가지고 있는 dictionary는 `{"Variable_0:0":a, "Variable_1:0":b}` 가 됩니다.
+---
+
+## Variable Saving, Restoring
+그럼 이제, `tf.train.Saver` 객체를 이용해 변수 저장을 해봅시다.
+```python
+import tensorflow as tf
+a = tf.Variable(tf.random_normal(shape=[10])) #a.name="Variable_0:0"
+b = tf.Variable(tf.random_normal(shape=[5])) # b.name="Variable_1:0"
+saver = tf.train.Saver()
+with tf.Session() as sess:
+* sess.run(tf.global_variables_initializer())
+  # some training code...
+  save_path = saver.save(sess, "./logs/model.ckpt")
+```
+
+initializer 를 실행시키면 Variable `a` `b`에 값이 할당됩니다.
+---
+
+## Variable Saving, Restoring
+그럼 이제, `tf.train.Saver` 객체를 이용해 변수 저장을 해봅시다.
+```python
+import tensorflow as tf
+a = tf.Variable(tf.random_normal(shape=[10])) #a.name="Variable_0:0"
+b = tf.Variable(tf.random_normal(shape=[5])) # b.name="Variable_1:0"
+saver = tf.train.Saver()
+with tf.Session() as sess:
+  sess.run(tf.global_variables_initializer())
+  # some training code...
+* save_path = saver.save(sess, "./logs/model.ckpt")
+```
+
+현재 Saver 객체가 가지고 있는 dictionary 정보를 디스크의 `"./logs/model.ckpt"` 이름으로 저장(save)합니다. 저장된 파일을 .red[checkpoint] 라고 부릅니다.
+
+---
+
+## Variable Saving, Restoring
+그럼 이제, `tf.train.Saver` 객체를 이용해 변수 저장을 해봅시다.
+```python
+import tensorflow as tf
+a = tf.Variable(tf.random_normal(shape=[10])) #a.name="Variable_0:0"
+b = tf.Variable(tf.random_normal(shape=[5])) # b.name="Variable_1:0"
+saver = tf.train.Saver()
+with tf.Session() as sess:
+  sess.run(tf.global_variables_initializer())
+  # some training code...
+* save_path = saver.save(sess, "./logs/model.ckpt")
+```
+
+다음과 같이 저장되어 있는 것을 확인할 수 있습니다.
+```bash
+./
+├── train.py
+└── logs
+    ├──checkpoint
+    ├──model.ckpt.data-00000-of-00001
+    ├──model.ckpt.index
+    └──model.ckpt.meta 
+```
+
+---
+
+## Variable Saving, Restoring
+그럼 이제, `tf.train.Saver` 객체를 이용해 변수 저장을 해봅시다.
+```python
+import tensorflow as tf
+a = tf.Variable(tf.random_normal(shape=[10])) #a.name="Variable_0:0"
+b = tf.Variable(tf.random_normal(shape=[5])) # b.name="Variable_1:0"
+saver = tf.train.Saver()
+with tf.Session() as sess:
+  sess.run(tf.global_variables_initializer())
+  # some training code...
+* save_path = saver.save(sess, "./logs/model.ckpt", global_step=1000)
+```
+
+`global_step` 인자를 통해서 현재 트레이닝 i번째 스텝의 파라미터 값을 가지고 있는 체크포인트임을 명시할 수 있습니다.
+```bash
+./
+├── train.py
+└── logs
+    ├──checkpoint
+    ├──model.ckpt-1000.data-00000-of-00001
+    ├──model.ckpt-1000.index
+    └──model.ckpt-1000.meta 
+```
+
+---
+## Variable Saving, Restoring
+checkpoint를 저장했으니, 저장한 checkpoint를 불러와 기록되어있는 파라미터 값으로 변수 값을 채워봅시다.
+
+```python
+import tensorflow as tf
+*a = tf.Variable(tf.random_normal(shape=[10])) #a.name="Variable_0:0"
+*b = tf.Variable(tf.random_normal(shape=[5])) # b.name="Variable_1:0"
+*saver = tf.train.Saver()
+with tf.Session() as sess:
+  # some training code...
+  saver.restore(sess, "./logs/model.ckpt-1000")
+  # sess.run(tf.global_variables_initializer())
+```
+
+변수 `a, b`를 생성하고 Saver 객체를 생성합니다.
+
+Saver 객체가 인자 없이 선언되었으니, 생성된 모든 변수들에 대한 dictionary를 가지고 있습니다: `{"Variable_0:0":a, "Variable_1:0":b}`
+
+---
+
+## Variable Saving, Restoring
+checkpoint를 저장했으니, 저장한 checkpoint를 불러와 기록되어있는 파라미터 값으로 변수 값을 채워봅시다.
+
+```python
+import tensorflow as tf
+a = tf.Variable(tf.random_normal(shape=[10])) #a.name="Variable_0:0"
+b = tf.Variable(tf.random_normal(shape=[5])) # b.name="Variable_1:0"
+saver = tf.train.Saver()
+with tf.Session() as sess:
+  # some training code...
+* saver.restore(sess, "./logs/model.ckpt-1000")
+  # sess.run(tf.global_variables_initializer())
+```
+
+checkpoint 파일의 이름을 인자로 넣어 저장된 파라미터 값을 불러옵니다.
+
+이 시점에서, saver 객체가 가지고 있는 dictionary 의 key값을 checkpoint파일에서 찾고, 매칭되는 checkpoint 파일의 key값이 존재한다면, 해당 value 텐서의 값을 saver 객체가 가지고 있는 dictionary의 value 에 할당합니다. 
+
+---
+
+## Variable Saving, Restoring
+checkpoint를 저장했으니, 저장한 checkpoint를 불러와 기록되어있는 파라미터 값으로 변수 값을 채워봅시다.
+
+```python
+import tensorflow as tf
+a = tf.Variable(tf.random_normal(shape=[10])) #a.name="Variable_0:0"
+b = tf.Variable(tf.random_normal(shape=[5])) # b.name="Variable_1:0"
+saver = tf.train.Saver()
+with tf.Session() as sess:
+  # some training code...
+  saver.restore(sess, "./logs/model.ckpt-1000")
+* # sess.run(tf.global_variables_initializer())
+```
+
+variable initializer를 restoring 이후에 run 하지 않는다는 사실에 주의해야 합니다.
+
+만약 restoring 이후에 initializer run을 하게 되면, 불러온 파라미터 값이 전부 지워지고 원래 변수의 initializer로 초기화됩니다.
+---
+## Quiz 3.
+1. MNIST에 모델을 트레이닝하고, checkpoint파일을 저장합니다.
+
+2. `eval.py` 파일을 만들고, 모델을 로딩한 후 저장한 checkpoint 파일을 restore합니다.
+
+3. 전체 Validation data에 대해서 불러온 파라미터 값을 가지는 모델을 Fully Evaluation하는(전체 Validation data 대한 Accuracy) 코드를 작성해 봅시다.
+
+Tip. Validation data는 5000개 Image/Label pair이고, `batch_size=100` 으로 50 iteration을 돌려서 Accuracy를 평균내면 됩니다.
 
 ---
 

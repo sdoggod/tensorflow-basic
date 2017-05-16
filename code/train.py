@@ -3,6 +3,10 @@ import numpy as np
 from tensorflow.examples.tutorials.mnist import input_data
 from IPython import embed
 from tensorflow import flags
+FLAGS = flags.FLAGS
+flags.DEFINE_integer("batch_size", 128, "batch size")
+flags.DEFINE_float("learning_rate", 0.01, "initial learning rate")
+flags.DEFINE_integer("max_steps", 10000, "number of iterations to train.")
 
 def main(_):
   mnist = input_data.read_data_sets("./data", one_hot=True)
@@ -28,15 +32,15 @@ def main(_):
   tf.summary.histogram("b", b)
 
   merge_op = tf.summary.merge_all()
-  optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.5)
+  optimizer = tf.train.GradientDescentOptimizer(learning_rate=FLAGS.learning_rate)
   train_op = optimizer.minimize(loss)
   with tf.Session() as sess:
     summary_writer_train = tf.summary.FileWriter("./logs/train", sess.graph)
 
     sess.run(tf.global_variables_initializer())
-    for step in range(10000):
-      batch_images, batch_labels = mnist.train.next_batch(128)
-      images_val, labels_val = mnist.validation.next_batch(128)
+    for step in range(FLAGS.max_steps):
+      batch_images, batch_labels = mnist.train.next_batch(FLAGS.batch_size)
+      images_val, labels_val = mnist.validation.next_batch(FLAGS.batch_size)
       feed = {model_inputs: batch_images, labels: batch_labels}
       _, loss_val = sess.run([train_op, loss], feed_dict=feed)
       print "step {} | loss {}".format(step, loss_val)
