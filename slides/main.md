@@ -137,10 +137,10 @@ c = tf.div(a,b) <-> c = a / b
 ## Exploring in Tensor: Tensor name
 ```python
 import tensorflow as tf
-a = tf.constant(1) 
-b = tf.constant(2) 
-c = tf.add(a,b) 
-sess = tf.Session() 
+a = tf.constant(1)
+b = tf.constant(2)
+c = tf.add(a,b)
+sess = tf.Session()
 
 print a, b, c, sess
 print sess.run(c) # 3
@@ -167,12 +167,12 @@ c = a + b
 with tf.Session() as sess:
   feed = {a:1, b:2} # python dictionary
   print sess.run(c, feed_dict=feed) # 3
-  
+
   feed = {a:2, b:4.5}
   print sess.run(c, feed_dict=feed) # 6.5
 ```
 ---
-##Quiz 0. 
+##Quiz 0.
 
 1. 3x4 행렬에 대한 Placeholder `a` 와 4x6 행렬에 대한 Placeholder `b` 를 선언한다.
 
@@ -204,7 +204,7 @@ linear_model_output = W * x + b
 *init_op = tf.global_variables_initializer()
 with tf.Session() as sess:
 * sess.run(init_op)
-  
+
   feed = {x:5.0}
   sess.run(linear_model_output, feed_dict=feed) # 6
 ```
@@ -226,7 +226,7 @@ linear_model_output = W * x + b
 *init_op = tf.global_variables_initializer()
 with tf.Session() as sess:
 * sess.run(init_op)
-  
+
   feed = {x:5.0}
   sess.run(linear_model_output, feed_dict=feed) # 6
 ```
@@ -252,8 +252,8 @@ Image Classsification Dataset
 ---
 
 ##  모델의 입력 및 출력 정의
-Input: 28*28 이미지 = 784차원 벡터 
-`model_input = [0, 255, 214, ...]` 
+Input: 28*28 이미지 = 784차원 벡터
+`model_input = [0, 255, 214, ...]`
 
 각각에 해당하는 정답 `labels = [0.0, 1.0, 0.0, 0.0, ...]`
 
@@ -261,8 +261,8 @@ Output: 이미지가 각 클래스에 속할 확률 예측값을 나타내는 10
 
 하고싶은 것은?
 
- **모델의 예측값이 정답 데이터(Label 또는 Ground-truth)와 최대한 비슷해지도록 모델 Parameter를 학습시키고 싶다** 
-<-> `label` 과 `predictions` 의 **오차를 최소화 하고 싶다** 
+ **모델의 예측값이 정답 데이터(Label 또는 Ground-truth)와 최대한 비슷해지도록 모델 Parameter를 학습시키고 싶다**
+<-> `label` 과 `predictions` 의 **오차를 최소화 하고 싶다**
 
 ---
 ## 모델의 입력 및 출력 정의
@@ -316,7 +316,7 @@ loss = tf.losses.softmax_cross_entropy(
 ---
 
 ## 모델 구성하기
-Optimizer 정의 -> 모델이 .red[loss](predictions 와 labels 사이의 차이)를 .red[최소화] 하는 방향으로 파라미터 업데이트를 했으면 좋겠다 
+Optimizer 정의 -> 모델이 .red[loss](predictions 와 labels 사이의 차이)를 .red[최소화] 하는 방향으로 파라미터 업데이트를 했으면 좋겠다
 ```python
 optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.01)
 train_op = optimizer.minimize(loss)
@@ -325,7 +325,7 @@ train_op = optimizer.minimize(loss)
 ---
 ## Training
 
-Session을 이용하여 
+Session을 이용하여
 
 `Variable`들을 초기화시켜준 후에
 
@@ -410,14 +410,14 @@ for step in range(10000):
   if step % 10 == 0:
     # session으로 merge_op을 실행시켜 summary를 얻고
     summary = sess.run(merge_op, feed_dict=feed)
-    
+
     # summary_writer 에 얻은 summary값을 추가
     summary_writer.add_summary(summary, step)
 ```
 ---
 ## Minor Tips - Tensorboard
 
-`$ tensorboard --logdir="./logs" --port=9000` 입력 
+`$ tensorboard --logdir="./logs" --port=9000` 입력
 
 & `localhost:9000` 접속
 
@@ -599,7 +599,7 @@ with tf.Session() as sess:
     ├──checkpoint
     ├──model.ckpt.data-00000-of-00001
     ├──model.ckpt.index
-    └──model.ckpt.meta 
+    └──model.ckpt.meta
 ```
 
 ---
@@ -625,7 +625,7 @@ with tf.Session() as sess:
     ├──checkpoint
     ├──model.ckpt-1000.data-00000-of-00001
     ├──model.ckpt-1000.index
-    └──model.ckpt-1000.meta 
+    └──model.ckpt-1000.meta
 ```
 
 ---
@@ -665,7 +665,7 @@ with tf.Session() as sess:
 
 checkpoint 파일의 이름을 인자로 넣어 저장된 파라미터 값을 불러옵니다.
 
-이 시점에서, saver 객체가 가지고 있는 dictionary 의 key값을 checkpoint파일에서 찾고, 매칭되는 checkpoint 파일의 key값이 존재한다면, 해당 value 텐서의 값을 saver 객체가 가지고 있는 dictionary의 value 에 할당합니다. 
+이 시점에서, saver 객체가 가지고 있는 dictionary 의 key값을 checkpoint파일에서 찾고, 매칭되는 checkpoint 파일의 key값이 존재한다면, 해당 value 텐서의 값을 saver 객체가 가지고 있는 dictionary의 value 에 할당합니다.
 
 ---
 
