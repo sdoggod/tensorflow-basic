@@ -42,13 +42,15 @@ code(https://github.com/naseil/tensorflow-basic)
 ./code
 ├── train.py
 ├── train_quiz1.py
-└── train_quiz2.py
+├── train_quiz2.py
+└── eval.py
 
 ```
 
 - `train.py` : basic regression model code
 - `train_quiz1.py` : quiz1 정답을 포함
 - `train_quiz2.py` : quiz2 정답을 포함
+- `eval.py` : quiz3 정답을 포함
 ---
 
 ## Tensor
@@ -688,7 +690,7 @@ variable initializer를 restoring 이후에 run 하지 않는다는 사실에 �
 ## Quiz 3.
 1. MNIST에 모델을 트레이닝하고, checkpoint파일을 저장합니다.
 
-2. `eval.py` 파일을 만들고, 모델을 로딩한 후 저장한 checkpoint 파일을 restore합니다.
+2. `eval.py` 파일을 만들고, 그래프를 그린 후 저장한 checkpoint 파일을 restore합니다.
 
 3. 전체 Validation data에 대해서 불러온 파라미터 값을 가지는 모델을 Fully Evaluation하는(전체 Validation data 대한 Accuracy) 코드를 작성해 봅시다.
 
