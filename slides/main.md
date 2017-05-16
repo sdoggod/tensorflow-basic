@@ -9,6 +9,7 @@ class: titlepage, no-number
 # TensorFlow Basic
 ## .gray.author[Seil Na]
 ### .gray.small[May 19, 2017]
+### .x-small[https://github.com/naseil/tensorflow-basic]
 ### .x-small[https://naseil.github.io/tensorflow-basic]
 .sklogobg[ ![Sklogo](images/sk-logo.png) ]
 
