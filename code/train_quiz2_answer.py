@@ -23,6 +23,12 @@ def main(_):
     onehot_labels=labels,
     logits=predictions)
 
+  dense_predictions = tf.argmax(predictions, axis=1)
+  dense_labels = tf.argmax(labels, axis=1)
+  equals = tf.cast(tf.equal(dense_predictions, dense_labels), tf.float32)
+  acc = tf.reduce_mean(equals)
+
+  tf.summary.scalar("acc", acc)
   tf.summary.scalar("loss", loss)
   tf.summary.histogram("W", w)
   tf.summary.histogram("b", b)
@@ -32,6 +38,7 @@ def main(_):
   train_op = optimizer.minimize(loss)
   with tf.Session() as sess:
     summary_writer_train = tf.summary.FileWriter("./logs/train", sess.graph)
+    summary_writer_val = tf.summary.FileWriter("./logs/validation", sess.graph)
 
     sess.run(tf.global_variables_initializer())
     for step in range(10000):
@@ -44,7 +51,9 @@ def main(_):
       if step % 10 == 0:
         summary_train = sess.run(merge_op, feed_dict=feed)
         feed = {model_inputs: images_val, labels:labels_val}
+        summary_val = sess.run(merge_op, feed_dict=feed)
         summary_writer_train.add_summary(summary_train, step)
+        summary_writer_val.add_summary(summary_val, step)
 
 if __name__ == "__main__":
   tf.app.run()

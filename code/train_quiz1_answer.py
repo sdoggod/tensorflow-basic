@@ -23,6 +23,12 @@ def main(_):
     onehot_labels=labels,
     logits=predictions)
 
+  dense_predictions = tf.argmax(predictions, axis=1)
+  dense_labels = tf.argmax(labels, axis=1)
+  equals = tf.cast(tf.equal(dense_predictions, dense_labels), tf.float32)
+  acc = tf.reduce_mean(equals)
+
+  tf.summary.scalar("acc", acc)
   tf.summary.scalar("loss", loss)
   tf.summary.histogram("W", w)
   tf.summary.histogram("b", b)
