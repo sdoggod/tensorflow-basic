@@ -699,6 +699,186 @@ Tip. Validation data는 5000개 Image/Label pair이고, `batch_size=100` 으로 
 
 ---
 
+template: inverse
+
+# Deep Neural Network using TensorFlow 
+
+---
+
+## 시작하기 전에...
+데이터 준비
+```python
+mnist = input_data.read_data_sets( # data loading...)
+```
+
+그래프 그리기
+```python
+x = tf.placeholder(dtype=tf.float32, shape=[None, 784]
+# ...
+logits = tf.matmul() # ...
+# ...
+predictions = # ...
+```
+
+* 모델 부분만 빼면 `day1/train.py` 코드와 대부분 중복된다
+* 모델 코드와 트레이닝 코드를 분리하면 각 컴포넌트를 수정하기 매우 편리해짐
+* 코드를 `models.py` 와 `train.py` 로 분리해보자!
+---
+## Code structure
+
+```bash
+./
+├── train.py
+└── models.py
+```
+
+- `train.py` : 모델 코드를 제외하고 Loss 계산, Optimizer 정의 및 학습 코드를 포함한다
+- `models.py` : class 형태의 모델 코드를 포함한다.
+
+
+---
+
+## DNN
+Input 텐서들을 입력으로 받아, predictions 를 출력으로 하는 구조의 모델
+```python
+# models.py
+class DNN(object):
+* def create_model(self, model_inputs):
+    # model architectures here!
+    # ...
+
+    return predictions
+```
+
+---
+## DNN
+
+필요한 파라미터 선언
+```python
+# models.py
+def create_model(model_inputs):
+  initializer = tf.random_normal
+  w1 = tf.Variable(initializer(shape=[784, 128]))
+  b1 = tf.Variable(initializer(shape=[128]))
+
+  w2 = tf.Variable(initializer(shape=[128, 10]))
+  b2 = tf.Variable(initializer(shape=[10]))
+```
+
+---
+
+## DNN
+그래프 그리기
+```python
+# models.py
+h1 = tf.nn.relu(tf.matmul(model_inputs, w1) + b1) # 1st hidden layer
+    
+logits = tf.matmul(h1,  w2) + b2
+predictions = tf.nn.softmax(logits)
+
+return predictions
+```
+
+`models.py` 안에 있는 모델 class가 input tensor를 argument를 받아 그에 대한 output(`predictions`)를 리턴하도록 합니다
+
+---
+
+## DNN
+Trainer - data reader, 모델 불러오기, train_op 정의, Session run 등
+
+```python
+# train.py
+mnist = input_data.read_data_sets("./data", one_hot=True)
+  
+# define model input: image and ground-truth label
+model_inputs = tf.placeholder(dtype=tf.float32, shape=[None, 784])
+labels = tf.placeholder(dtype=tf.float32, shape=[None, 10])
+```
+
+---
+
+## DNN
+모델 불러오기 `getattr` 함수 사용
+```python
+# train.py
+import models
+models = getattr(models, "DNN", None)
+predictions = models.create_model(model_inputs)
+```
+
+모델이 여러개인 경우에, 다음과 같이 `tf.flags` 모듈을 이용하여 argparse로 사용할 모델을 선택하면 편리합니다. (대신 코드의 일관성을 위해 반드시 .red[모든 모델의 입출력 포맷이 같아야 함])
+```python
+# train.py
+import models
+models = getattr(models, flags.model, None)
+predictions = models.create_model(model_inputs)
+```
+`$ python train.py --model=DNN`
+
+`$ python train.py --model=LogisticRegression`
+
+
+---
+
+## DNN
+
+loss & train op 정의
+```python
+# train.py
+# define cross entropy loss term
+loss = tf.losses.softmax_cross_entropy(
+    onehot_labels=labels,
+    logits=predictions)
+
+# train.py 안에서 정의되는 텐서들에 대하여 summary 생성
+tf.summary.scalar("loss", loss)
+merge_op = tf.summary.merge_all()
+
+optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.0001)
+train_op = optimizer.minimize(loss)
+```
+---
+
+## DNN
+Session으로 Training 실행
+```python
+with tf.Session() as sess:
+  summary_writer_train = tf.summary.FileWriter("./logs/train", sess.graph)
+
+  sess.run(tf.global_variables_initializer())
+  for step in range(10000):
+    batch_images, batch_labels = mnist.train.next_batch(100)
+    feed = {model_inputs: batch_images, labels: batch_labels}
+    _, loss_val = sess.run([train_op, loss], feed_dict=feed)
+    print "step {} | loss {}".format(step, loss_val)
+
+    if step % 10 == 0:
+      summary_train = sess.run(merge_op, feed_dict=feed)
+      summary_writer_train.add_summary(summary_train, step)
+```
+---
+
+## DNN
+### Hmm...
+.center.img-50[![](images/dnn_results.png)]
+
+---
+## DNN
+더 잘할 수 없을까?
+
+모델의 구조를 이것저것 바꿔봅시다
+
+- Hidden Layer 의 개수
+- 각 Hidden Layer 의 차원(Dimension)
+- Learning rate
+- Optimizer 종류 (`tf.train.GradientDescentOptimizer`, `tf.train.AdamOptimizer`, ...)
+- Batch size
+
+등등... 
+
+Do it!
+---
+
 name: last-page
 class: center, middle, no-number
 ## Thank You!
