@@ -727,7 +727,7 @@ predictions = # ...
 ## Code structure
 
 ```bash
-./
+./code-day2
 ├── train.py
 └── models.py
 ```
